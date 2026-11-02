@@ -1,0 +1,44 @@
+# agentregistry (catalog only) with its Postgres database.
+# Trimmed from the upstream compose file at the pinned release: no Docker socket and no kubeconfig mounts,
+# because this demo only uses the catalog and never deploys anything through the registry.
+# Upstream: https://github.com/agentregistry-dev/agentregistry/blob/main/docker/docker-compose.yml
+name: agentregistry-demo
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: agentregistry
+      POSTGRES_USER: agentregistry
+      POSTGRES_PASSWORD: agentregistry
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentregistry -d agentregistry"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agentregistry:
+    image: ghcr.io/agentregistry-dev/agentregistry/server:${AGENTREGISTRY_VERSION:-v0.4.0}
+    environment:
+      AGENT_REGISTRY_DATABASE_URL: "postgres://agentregistry:agentregistry@postgres:5432/agentregistry?sslmode=disable"
+      AGENT_REGISTRY_SERVER_ADDRESS: ":8080"
+      AGENT_REGISTRY_ENABLE_REGISTRY_VALIDATION: "false"
+      AGENT_REGISTRY_PLATFORM_MODE: "docker"
+      # Also serve the read-only MCP Registry v0.1 API (/v0.1/servers?search=...)
+      AGENT_REGISTRY_MCP_REGISTRY_COMPAT_ENABLED: "true"
+    ports:
+      - "12121:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:8080/v0/ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+      start_period: 5s
+
+volumes:
+  postgres_data:

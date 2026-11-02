@@ -1,0 +1,818 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Jira (mock)",
+    "version": "1.0.0",
+    "description": "A stand-in for the Jira Cloud REST API, served by mocks/jira/server.mjs."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8081"
+    }
+  ],
+  "paths": {
+    "/rest/api/3/search": {
+      "get": {
+        "operationId": "searchIssues",
+        "summary": "Search for issues using JQL",
+        "description": "Returns issues that match a JQL query. Supports project, status, assignee, labels, fixVersion, issuetype, text ~ \"words\" and ORDER BY. Results are paged with startAt and maxResults.",
+        "parameters": [
+          {
+            "name": "jql",
+            "in": "query",
+            "required": true,
+            "description": "The JQL query, for example: project = AGW AND status != Done ORDER BY updated DESC.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startAt",
+            "in": "query",
+            "required": false,
+            "description": "Index of the first issue to return (0-based).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of issues to return. Default 50.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated list of fields to return, for example summary,status,assignee.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}": {
+      "get": {
+        "operationId": "getIssue",
+        "summary": "Get an issue",
+        "description": "Returns the details of one issue: summary, description, status, priority, assignee, reporter, labels, fix versions and dates.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated list of fields to return.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "operationId": "editIssue",
+        "summary": "Edit an issue",
+        "description": "Updates fields of an issue. Only the fields you send change.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "summary": {
+                    "type": "string",
+                    "description": "New summary."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "New description."
+                  },
+                  "priority": {
+                    "type": "string",
+                    "description": "New priority name."
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Replacement list of labels."
+                  }
+                },
+                "required": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue": {
+      "post": {
+        "operationId": "createIssue",
+        "summary": "Create an issue",
+        "description": "Creates an issue in a project. Provide the project key, the issue type name and a summary.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectKey": {
+                    "type": "string",
+                    "description": "Key of the project that gets the issue."
+                  },
+                  "issueType": {
+                    "type": "string",
+                    "description": "Issue type name: Bug, Task, Story or Epic."
+                  },
+                  "summary": {
+                    "type": "string",
+                    "description": "One-line summary."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Longer description."
+                  },
+                  "priority": {
+                    "type": "string",
+                    "description": "Priority name: Highest, High, Medium, Low or Lowest."
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Labels to add."
+                  },
+                  "assigneeAccountId": {
+                    "type": "string",
+                    "description": "Account id of the assignee."
+                  }
+                },
+                "required": [
+                  "projectKey",
+                  "issueType",
+                  "summary"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}/assignee": {
+      "put": {
+        "operationId": "assignIssue",
+        "summary": "Assign an issue",
+        "description": "Assigns an issue to a user. Send a null accountId to leave it unassigned.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountId": {
+                    "type": "string",
+                    "description": "Account id of the new assignee."
+                  }
+                },
+                "required": [
+                  "accountId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}/transitions": {
+      "get": {
+        "operationId": "getTransitions",
+        "summary": "Get the transitions of an issue",
+        "description": "Returns the workflow transitions that the issue can take from its current status.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "operationId": "transitionIssue",
+        "summary": "Transition an issue",
+        "description": "Moves an issue to another status. Get the transition id from getTransitions first.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transitionId": {
+                    "type": "string",
+                    "description": "Id of the transition to run."
+                  }
+                },
+                "required": [
+                  "transitionId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}/comment": {
+      "post": {
+        "operationId": "addComment",
+        "summary": "Add a comment",
+        "description": "Adds a comment to an issue.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "body": {
+                    "type": "string",
+                    "description": "The comment text."
+                  }
+                },
+                "required": [
+                  "body"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getComments",
+        "summary": "Get the comments of an issue",
+        "description": "Returns the comments of an issue, oldest first.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}/worklog": {
+      "post": {
+        "operationId": "addWorklog",
+        "summary": "Add a worklog",
+        "description": "Logs time spent on an issue.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "timeSpent": {
+                    "type": "string",
+                    "description": "Time spent, for example 2h 30m."
+                  },
+                  "comment": {
+                    "type": "string",
+                    "description": "What the work was."
+                  }
+                },
+                "required": [
+                  "timeSpent"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getWorklogs",
+        "summary": "Get the worklogs of an issue",
+        "description": "Returns the time logged on an issue.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/issue/{issueIdOrKey}/changelog": {
+      "get": {
+        "operationId": "getChangelog",
+        "summary": "Get the changelog of an issue",
+        "description": "Returns the history of changes to an issue: who changed which field and when.",
+        "parameters": [
+          {
+            "name": "issueIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Issue key (for example AGW-101) or numeric id.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of entries.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/issueLink": {
+      "post": {
+        "operationId": "linkIssues",
+        "summary": "Link two issues",
+        "description": "Creates a link between two issues, for example Blocks or Relates.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "Link type name, for example Blocks or Relates."
+                  },
+                  "inwardIssue": {
+                    "type": "string",
+                    "description": "Key of the inward issue."
+                  },
+                  "outwardIssue": {
+                    "type": "string",
+                    "description": "Key of the outward issue."
+                  }
+                },
+                "required": [
+                  "type",
+                  "inwardIssue",
+                  "outwardIssue"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issueLinkType": {
+      "get": {
+        "operationId": "listLinkTypes",
+        "summary": "List issue link types",
+        "description": "Returns the link types that can connect two issues.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/project/search": {
+      "get": {
+        "operationId": "listProjects",
+        "summary": "List projects",
+        "description": "Returns the projects the user can see, with key, name and type.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "description": "Filter by name or key.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of projects.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/project/{projectIdOrKey}": {
+      "get": {
+        "operationId": "getProject",
+        "summary": "Get a project",
+        "description": "Returns one project with its lead and issue types.",
+        "parameters": [
+          {
+            "name": "projectIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Project key or id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/project/{projectIdOrKey}/versions": {
+      "get": {
+        "operationId": "listProjectVersions",
+        "summary": "List the versions of a project",
+        "description": "Returns the release versions of a project and whether each one is released.",
+        "parameters": [
+          {
+            "name": "projectIdOrKey",
+            "in": "path",
+            "required": true,
+            "description": "Project key or id.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/version": {
+      "post": {
+        "operationId": "createVersion",
+        "summary": "Create a version",
+        "description": "Creates a release version in a project.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Version name, for example v1.8.0."
+                  },
+                  "projectId": {
+                    "type": "integer",
+                    "description": "Id of the project."
+                  },
+                  "releaseDate": {
+                    "type": "string",
+                    "description": "Planned release date (YYYY-MM-DD)."
+                  }
+                },
+                "required": [
+                  "name",
+                  "projectId"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rest/api/3/issuetype": {
+      "get": {
+        "operationId": "listIssueTypes",
+        "summary": "List issue types",
+        "description": "Returns the issue types that exist: Bug, Task, Story and Epic.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/priority": {
+      "get": {
+        "operationId": "listPriorities",
+        "summary": "List priorities",
+        "description": "Returns the priority levels, from Highest to Lowest.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/field": {
+      "get": {
+        "operationId": "listFields",
+        "summary": "List fields",
+        "description": "Returns the system and custom fields that an issue can have.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/label": {
+      "get": {
+        "operationId": "listLabels",
+        "summary": "List labels",
+        "description": "Returns all labels in use.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/myself": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "Get the current user",
+        "description": "Returns the user that makes the request.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/api/3/user/search": {
+      "get": {
+        "operationId": "searchUsers",
+        "summary": "Find users",
+        "description": "Returns users whose name or email matches the query.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Name or email to search for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/agile/1.0/board": {
+      "get": {
+        "operationId": "listBoards",
+        "summary": "List boards",
+        "description": "Returns the Scrum and Kanban boards, optionally for one project.",
+        "parameters": [
+          {
+            "name": "projectKeyOrId",
+            "in": "query",
+            "required": false,
+            "description": "Only boards of this project.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/agile/1.0/board/{boardId}/sprint": {
+      "get": {
+        "operationId": "listSprints",
+        "summary": "List the sprints of a board",
+        "description": "Returns the sprints of a Scrum board, optionally filtered by state.",
+        "parameters": [
+          {
+            "name": "boardId",
+            "in": "path",
+            "required": true,
+            "description": "Id of the board.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "description": "active, closed or future.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rest/agile/1.0/sprint/{sprintId}/issue": {
+      "get": {
+        "operationId": "getSprintIssues",
+        "summary": "Get the issues of a sprint",
+        "description": "Returns the issues in a sprint.",
+        "parameters": [
+          {
+            "name": "sprintId",
+            "in": "path",
+            "required": true,
+            "description": "Id of the sprint.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "maxResults",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of issues.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  }
+}

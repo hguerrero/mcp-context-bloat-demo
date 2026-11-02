@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: GitHub REST API (excerpt)
+  version: 1.0.0
+  description: One operation from the GitHub REST API, enough for the release-brief workflow.
+servers:
+  - url: https://api.github.com
+paths:
+  /repos/{owner}/{repo}/releases/latest:
+    get:
+      operationId: getLatestRelease
+      summary: Get the latest release
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The latest published release

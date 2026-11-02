@@ -1,0 +1,27 @@
+{
+  "name": "mcp-context-bloat-demo",
+  "version": "1.0.0",
+  "description": "Watch MCP tool definitions bloat an agent's context, then fix it with agentgateway, agentregistry, Headroom and tool modes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent": "tsx src/agent.ts",
+    "compare": "tsx src/compare.ts",
+    "census": "tsx src/census.ts",
+    "flows": "tsx flows/server.ts",
+    "jira": "node mocks/jira/server.mjs",
+    "gen:jira": "node mocks/jira/gen-openapi.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@usearazzo/runner": "1.0.1-alpha.20",
+    "yaml": "^2.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

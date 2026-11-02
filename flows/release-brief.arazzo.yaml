@@ -1,0 +1,82 @@
+arazzo: 1.0.1
+info:
+  title: Release brief
+  summary: Workflows that join GitHub, Jira and the jokes API
+  version: 1.0.0
+sourceDescriptions:
+  - name: github
+    url: ./openapi/github-rest.yaml
+    type: openapi
+  - name: jira
+    url: ../mocks/jira/openapi.json
+    type: openapi
+  - name: jokes
+    url: ../gateway/openapi-chuck.yaml
+    type: openapi
+
+workflows:
+  - workflowId: releaseBrief
+    summary: Release brief for a GitHub repository and its Jira project
+    description: >-
+      Returns the latest GitHub release of a repository, how many Jira issues match a JQL query,
+      and a Chuck Norris joke to end on. Use it for release status questions. One call replaces three tool calls.
+    inputs:
+      type: object
+      required: [owner, repo, jql]
+      properties:
+        owner:
+          type: string
+          description: GitHub organization or user, for example agentgateway.
+        repo:
+          type: string
+          description: GitHub repository name, for example agentgateway.
+        jql:
+          type: string
+          description: "JQL for the issues to count, for example: project = AGW AND status != Done"
+    steps:
+      - stepId: latestRelease
+        description: Read the latest published release from GitHub
+        operationId: $sourceDescriptions.github.getLatestRelease
+        parameters:
+          - name: owner
+            in: path
+            value: $inputs.owner
+          - name: repo
+            in: path
+            value: $inputs.repo
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          tag: $response.body#/tag_name
+          publishedAt: $response.body#/published_at
+          url: $response.body#/html_url
+
+      - stepId: openIssues
+        description: Count the Jira issues that match the JQL
+        operationId: $sourceDescriptions.jira.searchIssues
+        parameters:
+          - name: jql
+            in: query
+            value: $inputs.jql
+          - name: maxResults
+            in: query
+            value: 0
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          total: $response.body#/total
+
+      - stepId: joke
+        description: A random joke to end on
+        operationId: $sourceDescriptions.jokes.getJoke
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          text: $response.body#/value
+
+    outputs:
+      release: $steps.latestRelease.outputs.tag
+      publishedAt: $steps.latestRelease.outputs.publishedAt
+      releaseUrl: $steps.latestRelease.outputs.url
+      notDoneIssues: $steps.openIssues.outputs.total
+      joke: $steps.joke.outputs.text

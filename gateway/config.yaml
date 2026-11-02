@@ -1,0 +1,202 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+#
+# One gateway for the whole demo (Solo Enterprise agentgateway, standalone, no Kubernetes).
+#
+#   /v1/messages       the model calls. The gateway holds the Anthropic key and logs tokens and cost.
+#
+#   Three MCP servers, one route each (stages 1 to 3: "add MCP servers one by one")
+#   /mcp/jokes         Chuck Norris API, converted to MCP tools from an OpenAPI spec (3 tools)
+#   /mcp/github        GitHub's hosted MCP server, read-only (28 tools)
+#   /mcp/jira          Jira stand-in, converted to MCP tools from an OpenAPI spec (27 tools)
+#
+#   The same three servers behind ONE endpoint, one route per tool mode (stage 5)
+#   /mcp/standard      toolMode: standard     every tool, with its full schema. Federates the three servers (58 tools).
+#   /mcp/search        toolMode: search       get_tool + invoke_tool
+#   /mcp/code          toolMode: code         run_code, with the JavaScript API for every tool in its description
+#   /mcp/codeSearch    toolMode: codeSearch   get_tool + run_code (run_code carries no API, get_tool supplies signatures)
+#
+#   Why the three tool-mode routes point at /mcp/standard and not at the three servers directly: on Enterprise
+#   v2026.10.0 a tool mode on a route with several targets fails on its first call ("unknown service get": the
+#   gateway splits get_tool, invoke_tool and run_code at the underscore, as if the first part named a target).
+#   A tool mode on a route with ONE target works, so the tool-mode routes front the federated /mcp/standard route.
+#   The cost is one extra local hop. Tool names keep their target prefix (jokes_getJoke, github_list_commits).
+#
+#   /mcp/flows         Arazzo workflows served as MCP tools (stage 6, optional)
+#
+# `toolMode` is an Enterprise feature. The open-source proxy ignores it and always runs in standard mode.
+# The license comes from ENTERPRISE_AGENTGATEWAY_LICENSE_KEY (scripts/run-gateway.sh sets it from AGENTGATEWAY_LICENSE_KEY).
+#
+# If requests fail with "503 backends required DNS resolution which failed" or "No route to host", the network
+# may have a broken IPv6 path. Uncomment this:
+#
+# config:
+#   dns:
+#     lookupFamily: V4Only
+config:
+  adminAddr: 0.0.0.0:15000
+
+gateways:
+  default:
+    port: 3000
+
+llm:
+  models:
+  - name: claude-*
+    provider: anthropic
+    params:
+      apiKey: $ANTHROPIC_API_KEY
+  policies:
+    cors:
+      allowOrigins:
+      - http://localhost:15000
+      allowHeaders:
+      - '*'
+      allowMethods:
+      - GET
+      - POST
+
+routes:
+  # ------------------------------------------------------------ one route per MCP server
+  - name: jokes
+    matches:
+      - path:
+          pathPrefix: /mcp/jokes
+    backends:
+      - mcp:
+          statefulMode: stateless
+          targets:
+            - name: jokes
+              openapi:
+                schema:
+                  file: ./openapi-chuck.yaml
+                host: https://api.chucknorris.io:443
+
+  - name: github
+    matches:
+      - path:
+          pathPrefix: /mcp/github
+    backends:
+      - mcp:
+          statefulMode: stateless
+          targets:
+            - name: github
+              mcp:
+                host: https://api.githubcopilot.com/mcp/readonly
+              policies:
+                backendAuth:
+                  key:
+                    value: "$GITHUB_PAT"
+                    location:
+                      header:
+                        name: Authorization
+                        prefix: "Bearer "
+
+  - name: jira
+    matches:
+      - path:
+          pathPrefix: /mcp/jira
+    backends:
+      - mcp:
+          statefulMode: stateless
+          targets:
+            - name: jira
+              openapi:
+                schema:
+                  file: ../mocks/jira/openapi.json
+                host: localhost:8081
+
+  # ------------------------------------------------ the three servers behind one endpoint, per tool mode
+  # With more than one target the gateway prefixes tool names with the target name.
+  - name: all-standard
+    matches:
+      - path:
+          pathPrefix: /mcp/standard
+    backends:
+      - mcp:
+          statefulMode: stateless
+          toolMode: standard
+          targets:
+            - name: jokes
+              openapi:
+                schema:
+                  file: ./openapi-chuck.yaml
+                host: https://api.chucknorris.io:443
+            - name: github
+              mcp:
+                host: https://api.githubcopilot.com/mcp/readonly
+              policies:
+                backendAuth:
+                  key:
+                    value: "$GITHUB_PAT"
+                    location:
+                      header:
+                        name: Authorization
+                        prefix: "Bearer "
+            - name: jira
+              openapi:
+                schema:
+                  file: ../mocks/jira/openapi.json
+                host: localhost:8081
+
+  - name: all-search
+    matches:
+      - path:
+          pathPrefix: /mcp/search
+    backends:
+      - mcp:
+          statefulMode: stateless
+          toolMode: search
+          targets:
+            - name: hub
+              mcp:
+                host: http://localhost:3000/mcp/standard
+
+  - name: all-code
+    matches:
+      - path:
+          pathPrefix: /mcp/code
+    backends:
+      - mcp:
+          statefulMode: stateless
+          toolMode: code
+          codeModeSettings:
+            timeout: 30s      # wall-clock limit for one run_code, including time spent waiting on upstream calls
+            cpuTimeout: 1s    # CPU-time limit, stops a script that spins without waiting
+          targets:
+            - name: hub
+              mcp:
+                host: http://localhost:3000/mcp/standard
+
+  - name: all-codesearch
+    matches:
+      - path:
+          pathPrefix: /mcp/codeSearch
+    backends:
+      - mcp:
+          statefulMode: stateless
+          toolMode: codeSearch
+          codeModeSettings:
+            timeout: 30s
+            cpuTimeout: 1s
+          targets:
+            - name: hub
+              mcp:
+                host: http://localhost:3000/mcp/standard
+
+  # ------------------------------------------------------------ Arazzo workflows as MCP tools (stage 6)
+  - name: flows
+    matches:
+      - path:
+          pathPrefix: /mcp/flows
+    backends:
+      - mcp:
+          statefulMode: stateless
+          targets:
+            - name: flows
+              mcp:
+                host: http://localhost:3002/mcp
+
+frontendPolicies:
+  accessLog:
+    database:
+      llm: full

@@ -1,0 +1,235 @@
+# MCP servers for the demo. The first three are the real ones and point at the gateway.
+# The rest are decoys that make the catalog look like a real one (their URLs do not exist).
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: jokes
+  labels:
+    demo: context-bloat
+spec:
+  title: Chuck Norris Jokes
+  description: "Random and searchable Chuck Norris jokes, by category. Use for humor, jokes and fun facts."
+  remote:
+    type: streamable-http
+    url: http://localhost:3000/mcp/jokes
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: github
+  labels:
+    demo: context-bloat
+spec:
+  title: GitHub (read-only)
+  description: "Read-only GitHub: repositories, releases, commits, issues, pull requests, code search and file contents."
+  remote:
+    type: streamable-http
+    url: http://localhost:3000/mcp/github
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: jira
+  labels:
+    demo: context-bloat
+spec:
+  title: Jira
+  description: "Jira projects, issues, sprints, boards and versions: search with JQL, read and update tickets, comments and worklogs."
+  remote:
+    type: streamable-http
+    url: http://localhost:3000/mcp/jira
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: slack
+  labels:
+    demo: context-bloat
+spec:
+  title: Slack
+  description: "Send and read Slack messages, search channels and threads, manage reminders."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/slack
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: notion
+  labels:
+    demo: context-bloat
+spec:
+  title: Notion
+  description: "Search and edit Notion pages and databases."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/notion
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: postgres
+  labels:
+    demo: context-bloat
+spec:
+  title: PostgreSQL
+  description: "Run read-only SQL queries and inspect schemas in a PostgreSQL database."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/postgres
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: stripe
+  labels:
+    demo: context-bloat
+spec:
+  title: Stripe
+  description: "Customers, invoices, subscriptions and payment intents."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/stripe
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: salesforce
+  labels:
+    demo: context-bloat
+spec:
+  title: Salesforce
+  description: "Accounts, contacts, opportunities and SOQL queries."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/salesforce
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: pagerduty
+  labels:
+    demo: context-bloat
+spec:
+  title: PagerDuty
+  description: "Incidents, on-call schedules and escalation policies."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/pagerduty
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: datadog
+  labels:
+    demo: context-bloat
+spec:
+  title: Datadog
+  description: "Metrics, monitors, logs and dashboards."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/datadog
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: linear
+  labels:
+    demo: context-bloat
+spec:
+  title: Linear
+  description: "Linear issues, projects and cycles."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/linear
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: confluence
+  labels:
+    demo: context-bloat
+spec:
+  title: Confluence
+  description: "Search and read Confluence spaces and pages."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/confluence
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: google-drive
+  labels:
+    demo: context-bloat
+spec:
+  title: Google Drive
+  description: "Search and read files in Google Drive."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/google-drive
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: sentry
+  labels:
+    demo: context-bloat
+spec:
+  title: Sentry
+  description: "Errors, releases and performance issues in Sentry projects."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/sentry
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: figma
+  labels:
+    demo: context-bloat
+spec:
+  title: Figma
+  description: "Read Figma files, components and comments."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/figma
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: zendesk
+  labels:
+    demo: context-bloat
+spec:
+  title: Zendesk
+  description: "Support tickets, users and help center articles."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/zendesk
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: snowflake
+  labels:
+    demo: context-bloat
+spec:
+  title: Snowflake
+  description: "Run SQL against Snowflake warehouses."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/snowflake
+---
+apiVersion: ar.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: kubernetes
+  labels:
+    demo: context-bloat
+spec:
+  title: Kubernetes
+  description: "List and inspect pods, deployments and events in a cluster."
+  remote:
+    type: streamable-http
+    url: https://mcp.example.com/kubernetes
